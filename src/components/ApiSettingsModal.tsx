@@ -56,18 +56,31 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-rose-500/30 bg-[#180b0e] text-stone-100 shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-sm sm:items-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-rose-500/30 bg-[#180b0e] text-stone-100 shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Mobile grab indicator */}
+        <div className="flex justify-center pt-2.5 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-white/20" />
+        </div>
+
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 text-white">
+        <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 text-white">
               <Sparkles className="h-4 w-4" />
             </div>
-            <div>
-              <h2 className="text-base font-bold text-amber-50">Free AI API Hub</h2>
-              <p className="text-xs text-stone-400">
-                Powered by providers from{' '}
+            <div className="min-w-0">
+              <h2 className="truncate text-sm font-bold text-amber-50 sm:text-base">
+                Free AI API Hub
+              </h2>
+              <p className="truncate text-[11px] text-stone-400 sm:text-xs">
+                Curated from{' '}
                 <a
                   href="https://github.com/OuterSpacee/free-ai-apis"
                   target="_blank"
@@ -76,14 +89,15 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                 >
                   OuterSpacee/free-ai-apis
                 </a>{' '}
-                ($0 / no credit card)
+                ($0 / no card)
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-stone-400 hover:bg-white/10 hover:text-white transition"
+            aria-label="Close settings"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-stone-400 transition hover:bg-white/10 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -91,12 +105,55 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
 
         {/* Body */}
         <div className="grid flex-1 grid-cols-1 overflow-y-auto md:grid-cols-12">
-          {/* Provider List */}
+          {/* Provider Selector: Horizontal pill strip on mobile, vertical list on tablet/desktop */}
           <div className="border-b border-white/10 p-3 md:col-span-5 md:border-b-0 md:border-r">
-            <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-stone-400 md:px-2">
               Choose Free Provider
             </p>
-            <div className="space-y-1">
+
+            {/* Mobile horizontal scrollable provider cards */}
+            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1 md:hidden">
+              {FREE_API_PROVIDERS.map((p) => {
+                const selected = draft.provider === p.id;
+                const hasSavedKey = Boolean(draft.apiKeys[p.id]?.trim());
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => selectProvider(p.id)}
+                    className={`flex min-h-[44px] shrink-0 flex-col justify-center rounded-xl px-3 py-1.5 text-left transition ${
+                      selected
+                        ? 'bg-rose-600/30 text-amber-100 ring-1 ring-rose-500/60'
+                        : 'border border-white/10 bg-white/[0.03] text-stone-300 active:bg-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="whitespace-nowrap text-xs font-semibold">{p.name}</span>
+                      {selected && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                    </div>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span
+                        className={`rounded px-1.5 py-0.2 text-[10px] ${
+                          p.authType === 'none'
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : p.authType === 'local'
+                            ? 'bg-sky-500/20 text-sky-300'
+                            : 'bg-amber-500/20 text-amber-300'
+                        }`}
+                      >
+                        {p.badge}
+                      </span>
+                      {p.authType === 'apiKey' && hasSavedKey && (
+                        <span className="text-[10px] text-emerald-400">● Key</span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tablet / Desktop vertical list */}
+            <div className="hidden space-y-1 md:block">
               {FREE_API_PROVIDERS.map((p) => {
                 const selected = draft.provider === p.id;
                 const hasSavedKey = Boolean(draft.apiKeys[p.id]?.trim());
@@ -138,17 +195,17 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
           </div>
 
           {/* Active Provider Configuration */}
-          <div className="flex flex-col justify-between p-5 md:col-span-7">
+          <div className="safe-bottom flex flex-col justify-between p-4 sm:p-5 md:col-span-7">
             <div className="space-y-4">
               <div>
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-bold text-white">{activeMeta.name}</h3>
                   {activeMeta.keyPortalUrl && (
                     <a
                       href={activeMeta.keyPortalUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-200 hover:bg-amber-500/20 transition"
+                      className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-200 transition hover:bg-amber-500/20"
                     >
                       <span>{activeMeta.authType === 'apiKey' ? 'Get Free Key' : 'Docs'}</span>
                       <ExternalLink className="h-3 w-3" />
@@ -160,7 +217,7 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                 </p>
               </div>
 
-              {/* Model Picker / Custom Model ID */}
+              {/* Model Picker / Custom Model ID (text-base on mobile avoids iOS Safari zoom!) */}
               <div>
                 <label className="block text-xs font-medium text-stone-300">Model</label>
                 <select
@@ -170,7 +227,7 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                   onChange={(e) => {
                     if (e.target.value !== '__custom') setModel(e.target.value);
                   }}
-                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#231015] px-3 py-2 text-xs text-stone-100 focus:border-amber-400 focus:outline-none"
+                  className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#231015] px-3 py-2.5 text-base text-stone-100 focus:border-amber-400 focus:outline-none sm:py-2 sm:text-xs"
                 >
                   {activeMeta.models.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -185,7 +242,7 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                     value={currentModel}
                     onChange={(e) => setModel(e.target.value)}
                     placeholder="Or type any model ID supported by this provider..."
-                    className="mt-2 w-full rounded-xl border border-white/10 bg-[#14080b] px-3 py-1.5 text-xs text-stone-200 placeholder-stone-500 focus:border-amber-400/60 focus:outline-none"
+                    className="mt-2 w-full rounded-xl border border-white/10 bg-[#14080b] px-3 py-2 text-base text-stone-200 placeholder-stone-500 focus:border-amber-400/60 focus:outline-none sm:py-1.5 sm:text-xs"
                   />
                 )}
               </div>
@@ -202,10 +259,10 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                     value={currentKey}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder={activeMeta.keyPlaceholder || 'Paste your free API key...'}
-                    className="mt-1.5 w-full rounded-xl border border-rose-500/30 bg-[#14080b] px-3 py-2 text-xs text-stone-100 placeholder-stone-500 focus:border-amber-400 focus:outline-none"
+                    className="mt-1.5 w-full rounded-xl border border-rose-500/30 bg-[#14080b] px-3 py-2.5 text-base text-stone-100 placeholder-stone-500 focus:border-amber-400 focus:outline-none sm:py-2 sm:text-xs"
                   />
                   <p className="mt-1.5 flex items-center gap-1 text-[11px] text-stone-400">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
                     Stored only in your browser&apos;s localStorage — never sent anywhere except{' '}
                     {activeMeta.name}.
                   </p>
@@ -234,7 +291,7 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
                       setDraft((prev) => ({ ...prev, ollamaBaseUrl: e.target.value }))
                     }
                     placeholder="http://localhost:11434/v1"
-                    className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#14080b] px-3 py-2 text-xs text-stone-100 focus:border-amber-400 focus:outline-none"
+                    className="mt-1.5 w-full rounded-xl border border-white/15 bg-[#14080b] px-3 py-2.5 text-base text-stone-100 focus:border-amber-400 focus:outline-none sm:py-2 sm:text-xs"
                   />
                 </div>
               )}
@@ -245,14 +302,14 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-xl border border-white/10 px-4 py-2 text-xs font-medium text-stone-300 hover:bg-white/5 transition"
+                className="min-h-[42px] rounded-xl border border-white/10 px-4 py-2 text-xs font-medium text-stone-300 transition hover:bg-white/5 sm:min-h-0"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleApply}
-                className="rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-rose-950/60 hover:brightness-110 transition"
+                className="min-h-[42px] flex-1 rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 px-5 py-2 text-xs font-semibold text-white shadow-lg shadow-rose-950/60 transition hover:brightness-110 sm:min-h-0 sm:flex-initial"
               >
                 Use {activeMeta.name}
               </button>
