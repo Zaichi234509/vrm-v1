@@ -1,0 +1,15 @@
+# Dependencies & build output
+node_modules/
+dist/
+dist-ssr/
+.vite/
+
+# Logs & TS incremental info
+*.log
+npm-debug.log*
+*.tsbuildinfo
+
+# Editor & OS
+.DS_Store
+.vscode/
+.idea/
