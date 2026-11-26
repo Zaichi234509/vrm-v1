@@ -20,6 +20,6 @@ Click **Free APIs** in the top-right of the chat panel to switch between:
 ## Running Locally
 
 ```bash
-npm install --ignore-scripts
+npm install
 npm run dev
 ```
