@@ -185,34 +185,25 @@ export function VrmStage({
     transitioning: true,
   });
 
-  const computeCameraGoal = (
-    preset: CameraPreset,
-    stageY: number,
-    headLocalY: number,
-    aspect = 1
-  ) => {
+  const computeCameraGoal = (preset: CameraPreset, stageY: number, headLocalY: number) => {
     const worldHeadY = stageY + headLocalY;
-    // PerspectiveCamera FOV is vertical; on narrow portrait viewports (aspect < 0.85),
-    // smoothly pull Z back so Hu Tao's shoulders, hands, and full waves never clip off the left/right edges!
-    const portraitZoomOut = aspect < 0.85 ? THREE.MathUtils.clamp((0.85 - aspect) * 0.9, 0, 0.36) : 0;
-
     if (preset === 'portrait') {
       return {
-        pos: new THREE.Vector3(0, worldHeadY + 0.03, 0.92 + portraitZoomOut * 0.65),
+        pos: new THREE.Vector3(0, worldHeadY + 0.03, 0.92),
         target: new THREE.Vector3(0, worldHeadY - 0.02, 0),
       };
     }
     if (preset === 'upper') {
       // Eye-level + upper torso framed cleanly in upper two-thirds, well above bottom toolbar
       return {
-        pos: new THREE.Vector3(0, worldHeadY - 0.06, 1.5 + portraitZoomOut),
+        pos: new THREE.Vector3(0, worldHeadY - 0.06, 1.5),
         target: new THREE.Vector3(0, worldHeadY - 0.17, 0),
       };
     }
     // Full body: frames from above plum-blossom hat all the way down to the elevated ritual pedestal + shoes
     const centerFullY = stageY + headLocalY * 0.52;
     return {
-      pos: new THREE.Vector3(0, centerFullY + 0.08, 2.52 + portraitZoomOut * 1.35),
+      pos: new THREE.Vector3(0, centerFullY + 0.08, 2.52),
       target: new THREE.Vector3(0, centerFullY - 0.03, 0),
     };
   };
@@ -244,16 +235,11 @@ export function VrmStage({
   useEffect(() => {
     cameraPresetRef.current = cameraPreset;
     elevationOffsetRef.current = elevationOffset;
-    const container = containerRef.current;
-    const aspect = container
-      ? container.clientWidth / Math.max(1, container.clientHeight)
-      : 1;
     const stageY = BASE_STAGE_ELEVATION + elevationOffset;
     const goal = computeCameraGoal(
       cameraPreset,
       stageY,
-      calibratedHeightsRef.current.headLocalY,
-      aspect
+      calibratedHeightsRef.current.headLocalY
     );
     desiredCamRef.current = {
       pos: goal.pos,
@@ -524,14 +510,14 @@ export function VrmStage({
     };
     window.addEventListener('pointermove', handlePointerMove);
 
-    // Click / tap raycast on Hu Tao (12px tolerance for mobile touch taps)
+    // Click / tap raycast on Hu Tao
     let pointerDownPos = { x: 0, y: 0 };
     const handlePointerDown = (ev: PointerEvent) => {
       pointerDownPos = { x: ev.clientX, y: ev.clientY };
     };
     const handlePointerUp = (ev: PointerEvent) => {
       const dist = Math.hypot(ev.clientX - pointerDownPos.x, ev.clientY - pointerDownPos.y);
-      if (dist > 12 || !currentVrm) return;
+      if (dist > 6 || !currentVrm) return;
       const rect = renderer.domElement.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((ev.clientX - rect.left) / rect.width) * 2 - 1,
@@ -604,8 +590,7 @@ export function VrmStage({
         }
 
         const stageY = BASE_STAGE_ELEVATION + elevationOffsetRef.current;
-        const aspect = container.clientWidth / Math.max(1, container.clientHeight);
-        const camGoal = computeCameraGoal(cameraPresetRef.current, stageY, headLocalY, aspect);
+        const camGoal = computeCameraGoal(cameraPresetRef.current, stageY, headLocalY);
         desiredCamRef.current = {
           pos: camGoal.pos,
           target: camGoal.target,
@@ -630,27 +615,14 @@ export function VrmStage({
       }
     );
 
-    // Resize observer (also re-frames camera smoothly when switching mobile portrait/landscape or drawer height)
+    // Resize observer
     const handleResize = () => {
       if (!container) return;
-      const w = Math.max(1, container.clientWidth);
+      const w = container.clientWidth;
       const h = Math.max(1, container.clientHeight);
-      const aspect = w / h;
-      camera.aspect = aspect;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
-      const stageY = BASE_STAGE_ELEVATION + elevationOffsetRef.current;
-      const camGoal = computeCameraGoal(
-        cameraPresetRef.current,
-        stageY,
-        calibratedHeightsRef.current.headLocalY,
-        aspect
-      );
-      desiredCamRef.current = {
-        pos: camGoal.pos,
-        target: camGoal.target,
-        transitioning: true,
-      };
     };
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
