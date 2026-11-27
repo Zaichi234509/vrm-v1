@@ -53,12 +53,13 @@
   letter-spacing: -0.01em;
 }
 
-/* Layered crimson/ember ambience behind the whole platform shell */
+/* Layered plum/ember ambience behind the whole platform shell (Hu Tao palette) */
 .app-shell-bg {
   background:
-    radial-gradient(1100px 720px at 12% -12%, rgba(190, 40, 62, 0.16), transparent 60%),
-    radial-gradient(900px 640px at 108% 112%, rgba(217, 119, 54, 0.12), transparent 55%),
-    linear-gradient(180deg, #140a0e 0%, #0c0609 55%, #090507 100%);
+    radial-gradient(1100px 720px at 12% -12%, rgba(190, 40, 78, 0.17), transparent 60%),
+    radial-gradient(900px 640px at 108% 112%, rgba(217, 119, 54, 0.11), transparent 55%),
+    radial-gradient(700px 500px at 50% 120%, rgba(244, 114, 164, 0.06), transparent 60%),
+    linear-gradient(180deg, #150a10 0%, #0d0609 55%, #090507 100%);
 }
 
 /* Frosted-glass HUD panel */
@@ -220,11 +221,98 @@
   .msg-in,
   .stream-caret,
   .typing-dot,
-  .text-shimmer {
+  .text-shimmer,
+  .petal {
     animation: none;
   }
 
   .stream-caret {
     opacity: 1;
   }
+
+  .petal {
+    opacity: 0;
+  }
 }
+
+/* ---------- Hu Tao motifs: plum blossoms, talismans, parlor signage ---------- */
+
+/* Drifting plum-blossom petal (decorative overlay above the 3D stage) */
+@keyframes petal-fall {
+  0% {
+    top: -7%;
+    transform: translateX(0) rotate(-24deg) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--petal-opacity, 0.72);
+  }
+  30% {
+    transform: translateX(2.4vw) rotate(64deg) scale(var(--petal-scale, 1));
+  }
+  55% {
+    transform: translateX(-1.8vw) rotate(158deg) scale(var(--petal-scale, 1));
+  }
+  80% {
+    transform: translateX(2vw) rotate(248deg) scale(var(--petal-scale, 1));
+  }
+  96% {
+    opacity: var(--petal-opacity, 0.72);
+  }
+  100% {
+    top: 107%;
+    transform: translateX(-0.9vw) rotate(336deg) scale(var(--petal-scale, 1));
+    opacity: 0;
+  }
+}
+
+.petal {
+  position: absolute;
+  top: -7%;
+  width: 13px;
+  height: 11px;
+  background: linear-gradient(
+    135deg,
+    #fbd0dd 0%,
+    #f9a8c0 40%,
+    #f472a4 75%,
+    #e75480 100%
+  );
+  border-radius: 74% 26% 68% 32% / 62% 46% 58% 38%;
+  box-shadow:
+    inset -1.5px -1.5px 3px rgba(255, 255, 255, 0.4),
+    0 0 6px rgba(244, 114, 164, 0.28);
+  animation: petal-fall var(--petal-duration, 16s) linear infinite;
+  animation-delay: var(--petal-delay, 0s);
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+/* Hu Tao's reply card — paper talisman with a dashed inner seal */
+.talisman-bubble {
+  position: relative;
+  background:
+    radial-gradient(130% 150% at 18% -8%, rgba(255, 236, 220, 0.05), transparent 52%),
+    linear-gradient(165deg, rgba(47, 22, 31, 0.94), rgba(34, 15, 22, 0.9));
+  border: 1px solid rgba(230, 134, 152, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 32px -16px rgba(0, 0, 0, 0.85);
+}
+
+.talisman-bubble::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed rgba(230, 134, 152, 0.2);
+  border-radius: 11px;
+  pointer-events: none;
+}
+
+/* Vertical Liyue shop-signage text (Wangsheng Funeral Parlor ornament) */
+.vertical-sign {
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 0.38em;
+}
+
