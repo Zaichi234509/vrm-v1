@@ -287,6 +287,114 @@ export function VrmStage({
 
     const scene = new THREE.Scene();
 
+    // === Hu Tao's Room Backdrop — twilight study at Wangsheng Funeral Parlor ===
+    // A large vignetted backdrop plane behind the stage, blended into scene fog +
+    // a matched background color so orbiting always melts into warm lantern mist
+    // instead of revealing hard edges.
+    const FOG_COLOR = 0x1a0b10;
+    scene.background = new THREE.Color(FOG_COLOR);
+    scene.fog = new THREE.Fog(FOG_COLOR, 6, 17);
+
+    const roomBackdropMat = new THREE.MeshBasicMaterial({
+      color: FOG_COLOR, // pre-texture, the wall reads as fog — no white flash!
+      toneMapped: false, // keep the painted room vivid, not ACES-darkened
+      fog: true,
+    });
+    const backdropGeo = new THREE.PlaneGeometry(15, 8.4375); // 16:9
+    const backdropMesh = new THREE.Mesh(backdropGeo, roomBackdropMat);
+    backdropMesh.position.set(0, 2.35, -4.1);
+    scene.add(backdropMesh);
+
+    // Warm lantern light pool on the floor beneath the ritual dais (grounds the room)
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = 256;
+    glowCanvas.height = 256;
+    const gctx = glowCanvas.getContext('2d');
+    if (gctx) {
+      const gg = gctx.createRadialGradient(128, 128, 8, 128, 128, 124);
+      gg.addColorStop(0, 'rgba(255, 150, 84, 0.34)');
+      gg.addColorStop(0.45, 'rgba(210, 90, 60, 0.15)');
+      gg.addColorStop(1, 'rgba(160, 40, 50, 0)');
+      gctx.fillStyle = gg;
+      gctx.fillRect(0, 0, 256, 256);
+    }
+    const floorGlowTex = new THREE.CanvasTexture(glowCanvas);
+    const floorGlowGeo = new THREE.PlaneGeometry(5.6, 5.6);
+    floorGlowGeo.rotateX(-Math.PI / 2);
+    const floorGlowMat = new THREE.MeshBasicMaterial({
+      map: floorGlowTex,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const floorGlow = new THREE.Mesh(floorGlowGeo, floorGlowMat);
+    floorGlow.position.y = 0.02;
+    scene.add(floorGlow);
+
+    // Load the painted room and bake a cinematic vignette + floor fade into it
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
+    new THREE.TextureLoader().load(
+      '/hutao-room.jpg',
+      (roomTex) => {
+        if (disposed) {
+          roomTex.dispose();
+          return;
+        }
+        const img = roomTex.image as { width: number; height: number } | undefined;
+        const iw = Math.max(2, img?.width ?? 1376);
+        const ih = Math.max(2, img?.height ?? 768);
+
+        const cv = document.createElement('canvas');
+        cv.width = iw;
+        cv.height = ih;
+        const c2d = cv.getContext('2d');
+        if (c2d) {
+          c2d.drawImage(roomTex.image as CanvasImageSource, 0, 0, iw, ih);
+
+          // Soft edge vignette (melts walls into the fog color)
+          const vg = c2d.createRadialGradient(
+            iw / 2,
+            ih / 2,
+            Math.min(iw, ih) * 0.34,
+            iw / 2,
+            ih / 2,
+            Math.max(iw, ih) * 0.62
+          );
+          vg.addColorStop(0, 'rgba(18, 8, 12, 0)');
+          vg.addColorStop(1, 'rgba(18, 8, 12, 0.66)');
+          c2d.fillStyle = vg;
+          c2d.fillRect(0, 0, iw, ih);
+
+          // Bottom fade into the parlor floor mist (blends with the dais shadow)
+          const bg = c2d.createLinearGradient(0, ih * 0.6, 0, ih);
+          bg.addColorStop(0, 'rgba(20, 9, 13, 0)');
+          bg.addColorStop(1, 'rgba(20, 9, 13, 0.85)');
+          c2d.fillStyle = bg;
+          c2d.fillRect(0, 0, iw, ih);
+
+          // Gentle top fade meeting the glass header
+          const tg = c2d.createLinearGradient(0, 0, 0, ih * 0.3);
+          tg.addColorStop(0, 'rgba(14, 6, 9, 0.5)');
+          tg.addColorStop(1, 'rgba(14, 6, 9, 0)');
+          c2d.fillStyle = tg;
+          c2d.fillRect(0, 0, iw, ih);
+        }
+
+        roomTex.dispose(); // only the baked canvas texture stays on the GPU
+
+        const roomVignetteTex = new THREE.CanvasTexture(cv);
+        roomVignetteTex.colorSpace = THREE.SRGBColorSpace;
+        roomVignetteTex.anisotropy = maxAniso;
+        roomBackdropMat.map = roomVignetteTex;
+        roomBackdropMat.color.set(0xffffff);
+        roomBackdropMat.needsUpdate = true;
+      },
+      undefined,
+      () => {
+        // Backdrop simply stays fog-colored if the room image is unavailable
+      }
+    );
+
     // Stage Root Group — elevates Hu Tao + her Wangsheng ritual dais cleanly above ground!
     const stageGroup = new THREE.Group();
     stageGroup.position.y = BASE_STAGE_ELEVATION + elevationOffsetRef.current;
@@ -314,6 +422,9 @@ export function VrmStage({
     controls.maxPolarAngle = Math.PI * 0.62;
     controls.minPolarAngle = Math.PI * 0.2;
     controls.enablePan = true;
+    // Keep Hu Tao's room beautifully framed — orbit generously but never behind the wall art
+    controls.minAzimuthAngle = -0.72;
+    controls.maxAzimuthAngle = 0.72;
     controls.update();
 
     const stopCamTransition = () => {
@@ -1240,20 +1351,52 @@ export function VrmStage({
   return (
     <div ref={containerRef} className="relative h-full w-full select-none overflow-hidden">
       {!isModelLoaded && !loadError && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#12080a]/75 backdrop-blur-sm">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-rose-500/40 bg-rose-950/50 shadow-lg shadow-rose-950/60">
-            <span className="animate-spin text-2xl text-amber-400">✦</span>
+        <div className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#0e0609]/70 backdrop-blur-[6px]">
+          <div className="glass flex w-[min(320px,86vw)] flex-col items-center gap-4 rounded-3xl px-8 py-7">
+            <div className="relative flex h-16 w-16 items-center justify-center">
+              <svg viewBox="0 0 64 64" className="absolute inset-0 h-16 w-16 -rotate-90">
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="26"
+                  fill="none"
+                  stroke="rgba(244, 63, 94, 0.18)"
+                  strokeWidth="5"
+                />
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="26"
+                  fill="none"
+                  stroke="url(#ht-load-grad)"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 26}
+                  strokeDashoffset={
+                    2 * Math.PI * 26 * (1 - Math.max(4, loadProgress) / 100)
+                  }
+                  style={{ transition: 'stroke-dashoffset 200ms ease' }}
+                />
+                <defs>
+                  <linearGradient id="ht-load-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#f43f5e" />
+                    <stop offset="100%" stopColor="#fbbf24" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span className="font-display text-sm font-bold text-amber-200">
+                {Math.max(4, loadProgress)}%
+              </span>
+            </div>
+            <div className="text-center">
+              <p className="font-display text-shimmer text-sm font-semibold tracking-wide">
+                Summoning Director Hu Tao…
+              </p>
+              <p className="mt-1 text-[11px] text-stone-400">
+                Setting up her room at Wangsheng Parlor
+              </p>
+            </div>
           </div>
-          <p className="text-sm font-medium tracking-wide text-amber-100">
-            Summoning Director Hu Tao...
-          </p>
-          <div className="mt-3 h-1.5 w-48 overflow-hidden rounded-full bg-stone-800">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-rose-500 to-amber-400 transition-all duration-200"
-              style={{ width: `${Math.max(8, loadProgress)}%` }}
-            />
-          </div>
-          <p className="mt-1.5 text-xs text-stone-400">{loadProgress}%</p>
         </div>
       )}
 
