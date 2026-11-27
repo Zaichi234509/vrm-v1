@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 :root {
-  /* Fluid typography (`mobile-responsiveness` skill) */
+  /* Premium typography (`mobile-responsiveness` skill fluid sizes + display/body pairing) */
+  --font-display: 'Outfit', 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
   --font-size-base: clamp(0.9375rem, 0.9rem + 0.25vw, 1rem);
   --font-size-title: clamp(0.95rem, 0.85rem + 0.5vw, 1.125rem);
+
+  /* Safe areas (notch / home indicator) */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -26,13 +31,55 @@
   }
 
   body {
+    font-family: var(--font-body);
     font-size: var(--font-size-base);
   }
+
+  ::selection {
+    background: rgba(244, 63, 94, 0.35);
+    color: #fde68a;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(251, 191, 36, 0.55);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------- Premium design system ---------- */
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Layered crimson/ember ambience behind the whole platform shell */
+.app-shell-bg {
+  background:
+    radial-gradient(1100px 720px at 12% -12%, rgba(190, 40, 62, 0.16), transparent 60%),
+    radial-gradient(900px 640px at 108% 112%, rgba(217, 119, 54, 0.12), transparent 55%),
+    linear-gradient(180deg, #140a0e 0%, #0c0609 55%, #090507 100%);
+}
+
+/* Frosted-glass HUD panel */
+.glass {
+  background: linear-gradient(150deg, rgba(41, 19, 24, 0.72), rgba(22, 10, 14, 0.66));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    0 18px 48px -18px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* Safe-area utilities for notched phones & home indicators */
 .safe-top {
   padding-top: max(0.75rem, var(--safe-top));
+}
+
+/* Slimmer safe-top for fixed-height bars (global header) */
+.safe-top-bar {
+  padding-top: max(0.625rem, var(--safe-top));
 }
 
 .safe-bottom {
@@ -72,4 +119,112 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(224, 72, 86, 0.6);
+}
+
+/* ---------- Motion & delight ---------- */
+
+/* Chat message entrance */
+@keyframes msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.msg-in {
+  animation: msg-in 340ms cubic-bezier(0.21, 1.02, 0.73, 1) both;
+}
+
+/* Streaming response caret */
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #fbbf6b, #f43f5e);
+  animation: caret-blink 1.05s ease-in-out infinite;
+}
+
+/* "Hu Tao is thinking" typing dots */
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  height: 5px;
+  width: 5px;
+  border-radius: 9999px;
+  background: #f59e42;
+  animation: typing-bounce 1.15s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.28s;
+}
+
+/* Shimmering gradient text (loading headline) */
+@keyframes text-shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #fda4af 0%,
+    #fbbf24 25%,
+    #fde68a 50%,
+    #fbbf24 75%,
+    #fda4af 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shimmer 2.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg-in,
+  .stream-caret,
+  .typing-dot,
+  .text-shimmer {
+    animation: none;
+  }
+
+  .stream-caret {
+    opacity: 1;
+  }
 }

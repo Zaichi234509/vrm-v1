@@ -61,7 +61,7 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
       onClick={onClose}
     >
       <div
-        className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-rose-500/30 bg-[#180b0e] text-stone-100 shadow-2xl sm:max-h-[88vh] sm:rounded-2xl"
+        className="flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl border border-rose-500/25 bg-[#180b0e]/95 shadow-[0_32px_80px_-24px_rgba(0,0,0,0.9)] backdrop-blur-xl text-stone-100 sm:max-h-[88vh] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile grab indicator */}
@@ -72,11 +72,11 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 text-white ring-1 ring-white/20">
               <Sparkles className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h2 className="truncate text-sm font-bold text-amber-50 sm:text-base">
+              <h2 className="font-display truncate text-sm font-bold text-amber-50 sm:text-base">
                 Free AI API Hub
               </h2>
               <p className="truncate text-[11px] text-stone-400 sm:text-xs">
