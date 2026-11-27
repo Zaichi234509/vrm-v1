@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ExternalLink, KeyRound, Server, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Check, ExternalLink, Flower2, KeyRound, Server, ShieldCheck, X } from 'lucide-react';
 import { FREE_API_PROVIDERS } from '../lib/freeApiProviders';
 import type { AIProviderId, AIProviderSettings } from '../types';
 
@@ -72,8 +72,8 @@ export function ApiSettingsModal({ open, settings, onClose, onSave }: ApiSetting
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-amber-500 text-white ring-1 ring-white/20">
-              <Sparkles className="h-4 w-4" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 via-rose-600 to-amber-500 text-white ring-1 ring-white/20">
+              <Flower2 className="h-4 w-4" />
             </div>
             <div className="min-w-0">
               <h2 className="font-display truncate text-sm font-bold text-amber-50 sm:text-base">

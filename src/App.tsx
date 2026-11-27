@@ -1,11 +1,12 @@
 import { FormEvent, TouchEvent, useCallback, useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import {
   ArrowDown,
   ArrowUp,
   Camera,
   ChevronDown,
   ChevronUp,
-  Flame,
+  Flower2,
   Loader2,
   Maximize2,
   MessageSquare,
@@ -61,6 +62,22 @@ const SHEET_RATIOS: Record<MobileSheetMode, { stage: number; chat: number }> = {
   split: { stage: 46, chat: 54 },
   full: { stage: 24, chat: 76 },
 };
+
+/** Drifting plum-blossom petals over the 3D stage (Hu Tao motif; deterministic layout) */
+const PETAL_STYLES: CSSProperties[] = [
+  { left: '5%', '--petal-duration': '15s', '--petal-delay': '0s', '--petal-scale': '1.15' },
+  { left: '12%', '--petal-duration': '19s', '--petal-delay': '-6s', '--petal-scale': '0.85' },
+  { left: '19%', '--petal-duration': '13s', '--petal-delay': '-11s', '--petal-scale': '1.05' },
+  { left: '27%', '--petal-duration': '17s', '--petal-delay': '-3s', '--petal-scale': '0.75' },
+  { left: '36%', '--petal-duration': '14s', '--petal-delay': '-9s', '--petal-scale': '1.2' },
+  { left: '45%', '--petal-duration': '20s', '--petal-delay': '-14s', '--petal-scale': '0.9' },
+  { left: '54%', '--petal-duration': '15s', '--petal-delay': '-5s', '--petal-scale': '1' },
+  { left: '63%', '--petal-duration': '12s', '--petal-delay': '-8s', '--petal-scale': '0.8' },
+  { left: '72%', '--petal-duration': '18s', '--petal-delay': '-13s', '--petal-scale': '1.1' },
+  { left: '81%', '--petal-duration': '16s', '--petal-delay': '-2s', '--petal-scale': '0.95' },
+  { left: '89%', '--petal-duration': '14s', '--petal-delay': '-10s', '--petal-scale': '1.25' },
+  { left: '95%', '--petal-duration': '21s', '--petal-delay': '-16s', '--petal-scale': '0.7' },
+] as unknown as CSSProperties[];
 
 const INITIAL_GREETING: ChatMessage = {
   id: 'welcome-msg',
@@ -308,9 +325,9 @@ export default function App() {
       <header className="safe-top-bar relative z-30 flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.06] bg-[#14090d]/85 pb-2 pl-3 pr-3 backdrop-blur-xl sm:pb-2.5 sm:pl-4 sm:pr-4">
         {/* Brand */}
         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 via-rose-600 to-amber-500 shadow-[0_8px_22px_-8px_rgba(244,63,94,0.8)] ring-1 ring-white/25 sm:h-10 sm:w-10">
-            <div className="pointer-events-none absolute -inset-1 rounded-[20px] bg-gradient-to-br from-rose-500/45 to-amber-400/30 blur-[7px]" />
-            <Flame className="relative h-4 w-4 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] sm:h-[18px] sm:w-[18px]" />
+          <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 via-rose-600 to-amber-500 shadow-[0_8px_22px_-8px_rgba(244,63,94,0.8)] ring-1 ring-white/25 sm:h-10 sm:w-10">
+            <div className="pointer-events-none absolute -inset-1 rounded-[20px] bg-gradient-to-br from-rose-400/45 to-amber-400/30 blur-[7px]" />
+            <Flower2 className="relative h-4 w-4 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)] sm:h-[18px] sm:w-[18px]" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -382,7 +399,25 @@ export default function App() {
               elevationOffset={elevationOffset}
               onHeadPat={handleHeadPat}
             />
+
+            {/* Drifting plum-blossom petals over Hu Tao's parlor */}
+            <div className="pointer-events-none absolute inset-0 z-[5] overflow-hidden" aria-hidden>
+              {PETAL_STYLES.map((petalStyle, i) => (
+                <span key={i} className="petal" style={petalStyle} />
+              ))}
+            </div>
           </div>
+
+          {/* Wangsheng Funeral Parlor vertical signage (desktop ornament) */}
+          {isDesktop && (
+            <div className="pointer-events-none absolute right-3 top-1/2 z-10 hidden -translate-y-1/2 select-none flex-col items-center gap-3 rounded-2xl border border-rose-400/20 bg-[#170b10]/70 px-1.5 py-4 backdrop-blur-md lg:flex">
+              <Flower2 className="h-3.5 w-3.5 text-rose-300/80" />
+              <span className="vertical-sign font-display text-sm font-semibold text-rose-200/70">
+                往生堂
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400/70 shadow-[0_0_6px_#fbbf24]" />
+            </div>
+          )}
 
           {/* Top-Right: Mobile Stage Controls (drawer toggle + full-stage toggle) */}
           <div className="safe-top pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-end gap-2 pt-2.5">
@@ -714,7 +749,7 @@ export default function App() {
                   </div>
                   <p className="truncate text-[11px] text-stone-400">
                     {aiStatus.state === 'loading'
-                      ? 'Waking up her AI brain…'
+                      ? 'Summoning her spirits…'
                       : aiStatus.detail}
                   </p>
                 </div>
@@ -808,8 +843,8 @@ export default function App() {
                       <div
                         className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13.5px] leading-relaxed sm:max-w-[80%] sm:text-sm ${
                           isUser
-                            ? 'rounded-br-md bg-gradient-to-br from-rose-600 to-rose-700 text-white shadow-[0_12px_30px_-12px_rgba(244,63,94,0.65)]'
-                            : 'rounded-bl-md border border-rose-500/20 bg-[#221017]/92 text-stone-100 shadow-lg backdrop-blur-md'
+                            ? 'rounded-br-md bg-gradient-to-br from-rose-500 to-rose-700 text-white shadow-[0_12px_30px_-12px_rgba(244,63,94,0.65)]'
+                            : 'talisman-bubble rounded-bl-md text-stone-100'
                         }`}
                       >
                         {msg.content ? (
@@ -823,7 +858,7 @@ export default function App() {
                             <span className="typing-dot" />
                             <span className="typing-dot" />
                             <span className="ml-1.5 text-xs text-amber-300/80">
-                              Hu Tao is thinking
+                              The Director is scheming…
                             </span>
                           </span>
                         )}
@@ -886,7 +921,7 @@ export default function App() {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask Hu Tao anything…"
+                    placeholder="Whisper to the Director…"
                     disabled={isGenerating}
                     enterKeyHint="send"
                     className="w-full bg-transparent py-1.5 text-base text-stone-100 placeholder-stone-500 focus:outline-none disabled:opacity-60 sm:text-sm"
@@ -905,9 +940,9 @@ export default function App() {
                   </button>
                 </div>
                 <p className="mt-1.5 hidden items-center justify-center gap-1.5 text-center text-[10px] text-stone-500 sm:flex">
-                  <span>Drag to orbit her room</span>
+                  <span>Drag to orbit her parlor</span>
                   <span>·</span>
-                  <span>Pinch/Scroll to zoom</span>
+                  <span>Pinch to zoom</span>
                   <span>·</span>
                   <span>Tap Hu Tao to play</span>
                 </p>

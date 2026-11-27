@@ -531,7 +531,29 @@ export function VrmStage({
     }
     const emberTex = new THREE.CanvasTexture(spriteCanvas);
 
-    // 1) Continuous Ambient Swirl Embers (seeded for deterministic beauty)
+    // Plum-blossom petal sprite — the parlor's signature drifting blossoms (Hu Tao motif)
+    const petalCanvas = document.createElement('canvas');
+    petalCanvas.width = 64;
+    petalCanvas.height = 64;
+    const pctx = petalCanvas.getContext('2d');
+    if (pctx) {
+      pctx.translate(32, 32);
+      const pgrad = pctx.createRadialGradient(0, -6, 2, 0, 0, 28);
+      pgrad.addColorStop(0, 'rgba(255, 224, 234, 0.95)');
+      pgrad.addColorStop(0.45, 'rgba(249, 168, 192, 0.85)');
+      pgrad.addColorStop(0.8, 'rgba(231, 84, 128, 0.45)');
+      pgrad.addColorStop(1, 'rgba(190, 40, 90, 0)');
+      pctx.fillStyle = pgrad;
+      pctx.beginPath();
+      pctx.moveTo(0, -24);
+      pctx.bezierCurveTo(15, -16, 19, 6, 0, 26);
+      pctx.bezierCurveTo(-19, 6, -15, -16, 0, -24);
+      pctx.closePath();
+      pctx.fill();
+    }
+    const petalTex = new THREE.CanvasTexture(petalCanvas);
+
+    // 1) Continuous Ambient Plum-Blossom Petal Drift (seeded for deterministic beauty)
     const rand = mulberry32(77077);
     const ambientCount = 60;
     const ambientState: AmbientParticle[] = [];
@@ -544,7 +566,7 @@ export function VrmStage({
         y: rand() * 2.4,
         z: Math.sin(angle) * r - 0.25,
         vx: 0,
-        vy: 0.12 + rand() * 0.14,
+        vy: 0.06 + rand() * 0.09, // petals fall & drift slower than embers
         vz: 0,
         phase: rand() * Math.PI * 2,
       };
@@ -559,11 +581,11 @@ export function VrmStage({
     ambientGeo.setAttribute('position', ambientPosAttr);
 
     const ambientMat = new THREE.PointsMaterial({
-      size: 0.062,
-      map: emberTex,
+      size: 0.085,
+      map: petalTex,
       transparent: true,
-      opacity: 0.82,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.78,
+      blending: THREE.NormalBlending, // petals read as soft blossoms, not glowing embers
       depthWrite: false,
     });
     const ambientPoints = new THREE.Points(ambientGeo, ambientMat);
@@ -1335,6 +1357,7 @@ export function VrmStage({
       controls.removeEventListener('start', stopCamTransition);
       controls.dispose();
       emberTex.dispose();
+      petalTex.dispose();
       shadowTex.dispose();
       if (currentVrm) {
         VRMUtils.deepDispose(currentVrm.scene);
@@ -1393,7 +1416,7 @@ export function VrmStage({
                 Summoning Director Hu Tao…
               </p>
               <p className="mt-1 text-[11px] text-stone-400">
-                Setting up her room at Wangsheng Parlor
+                Sweeping the petals in her Wangsheng parlor…
               </p>
             </div>
           </div>
